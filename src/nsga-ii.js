@@ -6,42 +6,45 @@ const mutation = require("./mutation");
 const fastNondomSort = require("./fast-nondominated-sort");
 const crowdingDist = require("./crowding-distance");
 
-function nsga2(repeat, initPop, popSize, pC, pM) {
+function nsga2(repeat, initPop, popSize, numberOfClusters, pC, pM, objectives) {
     let itr = 0;
-    let parents = initPop;
+    let parents = initPop.slice();
     let offsprings = [];
     let middlePop = [];
     let population = [];
     let fronts = [];
 
-    offsprings = createOffsprings(parents, pC, pM);
+    offsprings = createOffsprings(parents, pC, pM, 1, numberOfClusters);
 
     while (itr <= repeat) {
+        middlePop = [];
         population = [...parents, ...offsprings];
-        fronts = fastNondomSort(population);
+        fronts = fastNondomSort(population, objectives);
 
         for (let i = 0; i < fronts.length; i++) {
-            crowdingDist(fronts[i], []);
+            crowdingDist(fronts[i], objectives);
             fronts.forEach((front, index) => {
                 if (middlePop.length + front.length <= popSize) {
                     middlePop = [...middlePop, ...front];
                 } else {
                     let emptySpace = popSize - middlePop.length;
-                    let leastCrowded = front[i].sort((a, b) => b.crowdingDistance - a.crowdingDistance);
-                    middlePop = [...middlePop, leastCrowded.slice(0, emptySpace - 1)];
+                    let leastCrowded = front.sort((a, b) => b.crowdingDistance - a.crowdingDistance);
+                    middlePop = [...middlePop, ...leastCrowded.slice(0, emptySpace)];
                 }
             });
         }
 
-        parents = selection.binaryTournament(middlePop);
-        offsprings = createOffsprings(parents, pC, pM);
+        //if (middlePop.length === 0) middlePop = population.slice();
+
+        parents = selection.binaryTournament(middlePop, popSize);
+        offsprings = createOffsprings(parents, pC, pM, 1, numberOfClusters);
         itr++;
     }
 
     return fronts;
 }
 
-function createOffsprings(pop = [], pC, pM) {
+function createOffsprings(pop = [], pC, pM, minValue, maxValue) {
     let pc = 0;
     let parent1 = {};
     let parent2 = {};
@@ -52,10 +55,10 @@ function createOffsprings(pop = [], pC, pM) {
         parent2 = pop.filter((elm, index) => index !== i)[rand(0, pop.length - 2)];
         pc = Math.random();
         if (pc <= pC)
-            childs.push(new solution(crossover.flipCoin(parent1, parent2)));
+            childs.push(new solution(crossover.flipCoin(parent1.chromosome, parent2.chromosome)));
         else
-            this.childs.push(parent1);
-        pop[i].chromsome = mutation(pop[i].chromsome, pM);
+            childs.push(parent1);
+        childs[i].chromosome = mutation(childs[i].chromosome, pM, minValue, maxValue);
     }
     return childs;
 }

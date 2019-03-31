@@ -1,13 +1,17 @@
-function fastNondominatedSort(pop) {
+const dominates = require("./dominate");
+
+function fastNondominatedSort(pop = [], objectives = []) {
     front = new Array([]);
     pop.forEach((p, indexP) => {
+
         p.dominatedSolutions = [];
         p.dominationCount = 0;
+
         pop.forEach((q, indexQ) => {
-            if (indexP === indexQ) continue;
-            if (dominates(p, q)) {
+            if (indexP === indexQ) return;
+            if (dominates(p, q, objectives)) {
                 p.dominatedSolutions.push(q);
-            } else {
+            } else if (dominates(q, p, objectives)) {
                 p.dominationCount++;
             }
         });
