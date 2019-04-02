@@ -19,11 +19,13 @@ function nsga2(repeat, initPop, popSize, numberOfClusters, pC, pM, objectives) {
     while (itr <= repeat) {
         middlePop = [];
         population = [...parents, ...offsprings];
+        
+        calcObjectives(population, objectives);
         fronts = fastNondomSort(population, objectives);
 
         for (let i = 0; i < fronts.length; i++) {
             crowdingDist(fronts[i], objectives);
-            fronts.forEach((front, index) => {
+            fronts.forEach(front => {
                 if (middlePop.length + front.length <= popSize) {
                     middlePop = [...middlePop, ...front];
                 } else {
@@ -33,8 +35,6 @@ function nsga2(repeat, initPop, popSize, numberOfClusters, pC, pM, objectives) {
                 }
             });
         }
-
-        //if (middlePop.length === 0) middlePop = population.slice();
 
         parents = selection.binaryTournament(middlePop, popSize);
         offsprings = createOffsprings(parents, pC, pM, 1, numberOfClusters);
@@ -61,6 +61,17 @@ function createOffsprings(pop = [], pC, pM, minValue, maxValue) {
         childs[i].chromosome = mutation(childs[i].chromosome, pM, minValue, maxValue);
     }
     return childs;
+}
+
+function calcObjectives(pop = [], objectives = []) {
+    pop.forEach(sln => {
+        let objVal = 0;
+        sln.objectives = [];
+        objectives.forEach(obj => {
+            objVal = obj.func(sln.chromosome);
+            sln.objectives.push(objVal);
+        });
+    })
 }
 
 module.exports = nsga2;

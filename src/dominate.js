@@ -14,8 +14,8 @@ function isDominate(a, b, objectives = []) {
 
   for (let i = 0; i < objectives.length; i++) {
     isMin = objectives[i].isMinimization();
-    aVal = isMin ? objectives[i].func(a.chromosome) : -objectives[i].func(a.chromosome);
-    bVal = isMin ? objectives[i].func(b.chromosome) : -objectives[i].func(b.chromosome);
+    aVal = isMin ? a.objectives[i] : -a.objectives[i];
+    bVal = isMin ? b.objectives[i] : -b.objectives[i];
     if (bVal < aVal)
       return false;
   }

@@ -4,6 +4,7 @@ class Solution {
         this.dominationCount = 0;        
         this.crowdingDistance = 0;
         this.dominatedSolutions = [];
+        this.objectives = [];
         this.chromosome = chromosome;
     }
 }
